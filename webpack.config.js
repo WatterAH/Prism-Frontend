@@ -16,7 +16,7 @@ module.exports = {
     hot: true,
     proxy: [
       {
-        context: ["/api"],
+        context: ["/prism"],
         target: "http://localhost:8080",
         changeOrigin: true,
         pathRewrite: { "^/api": "" },

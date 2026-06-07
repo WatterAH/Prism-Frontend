@@ -1,0 +1,50 @@
+body {
+  font-family: "Geist Sans";
+}
+
+#login-view {
+  background-color: #f4f3f0;
+  background-image: radial-gradient(circle, #d1d1d1 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+}
+
+.card {
+  border: 1px solid #e8e8e8;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 575.98px) {
+  #login-view .card {
+    border: none;
+    box-shadow: none;
+    background-color: transparent !important;
+  }
+
+  #login-view .form-control {
+    background-color: #fff !important;
+  }
+}
+
+.btn {
+  background-color: #202020;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 200;
+}
+
+.btn:hover {
+  background-color: #000;
+}
+
+.form-control {
+  border-color: #eaeaea;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-color: #eaeaea;
+}
