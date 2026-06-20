@@ -4,7 +4,12 @@ import { Logo } from "../components/ui/Logo";
 import { Plus, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import request from "../lib/request";
-import { Exercise } from "../types";
+import {
+  Exercise,
+  DIFFICULTY_LABEL,
+  DIFFICULTY_COLOR,
+  CHART_TYPE_LABEL,
+} from "../types";
 
 interface User {
   userId: number;
@@ -96,7 +101,6 @@ class Dashboard extends React.Component<Props, State> {
           padding: "24px",
         }}
       >
-        {/* Delete confirmation overlay */}
         {deleteId !== null && (
           <div
             style={{
@@ -144,7 +148,6 @@ class Dashboard extends React.Component<Props, State> {
           </div>
         )}
 
-        {/* Navbar */}
         <div
           className="card rounded-4 px-4 py-3 d-flex flex-row align-items-center justify-content-between mb-4"
           style={{ backgroundColor: "#fff" }}
@@ -192,7 +195,6 @@ class Dashboard extends React.Component<Props, State> {
           </button>
         </div>
 
-        {/* Content card */}
         <div className="card rounded-4 px-4 pt-4 pb-3" style={{ backgroundColor: "#fff" }}>
           <div className="d-flex align-items-center justify-content-between mb-4">
             <div>
@@ -284,10 +286,39 @@ class Dashboard extends React.Component<Props, State> {
                     fontSize: "12px",
                     userSelect: "none",
                   };
+                  const diffColor = DIFFICULTY_COLOR[ex.difficulty];
                   return (
                     <tr key={ex.exerciseId} style={{ borderColor: "#f4f3f0" }}>
                       <td style={{ verticalAlign: "middle", color: "#16140f" }}>
-                        {ex.title}
+                        <div className="d-flex align-items-center gap-2 flex-wrap">
+                          <span>{ex.title}</span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "2px 8px",
+                              borderRadius: 999,
+                              backgroundColor: diffColor.bg,
+                              color: diffColor.fg,
+                            }}
+                          >
+                            {DIFFICULTY_LABEL[ex.difficulty]}
+                          </span>
+                          {ex.chartType && (
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                padding: "2px 8px",
+                                borderRadius: 999,
+                                backgroundColor: "#f4f3f0",
+                                color: "#737373",
+                              }}
+                            >
+                              {CHART_TYPE_LABEL[ex.chartType]}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td style={{ verticalAlign: "middle" }}>
                         <div className="d-flex align-items-center gap-2 flex-wrap">

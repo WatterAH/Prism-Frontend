@@ -73,6 +73,14 @@ class Login extends React.Component<Props, State> {
 
   render() {
     return (
+      <>
+        <style>{`
+          #login-view { align-items: center; padding-left: 0; }
+          @media (min-width: 768px) {
+            #login-view { align-items: flex-start; padding-left: 18%; }
+            #login-card { margin-left: 0 !important; margin-right: 0 !important; }
+          }
+        `}</style>
       <div
         id="login-view"
         className="container-fluid d-flex flex-column justify-content-center w-100 vh-100"
@@ -80,11 +88,11 @@ class Login extends React.Component<Props, State> {
           backgroundImage: `url(${bgImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          paddingLeft: "18%",
         }}
       >
         <div
-          className="card rounded-4 px-3 pt-3 pb-0"
+          id="login-card"
+          className="card rounded-4 px-3 pt-3 pb-0 mx-3"
           style={{
             maxWidth: "380px",
             width: "100%",
@@ -190,6 +198,7 @@ class Login extends React.Component<Props, State> {
           </div>
         </div>
       </div>
+      </>
     );
   }
 }

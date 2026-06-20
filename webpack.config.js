@@ -11,11 +11,11 @@ module.exports = {
   mode: "development",
   devtool: "inline-source-map",
   devServer: {
-    port: 3000,
+    port: 8080,
     open: true,
     hot: true,
     historyApiFallback: true,
-    static: { directory: path.join(__dirname, "public") },
+    static: { directory: path.join(__dirname, "dist") },
     proxy: [
       {
         context: ["/api"],

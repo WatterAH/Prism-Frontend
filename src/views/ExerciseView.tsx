@@ -4,7 +4,13 @@ import { Logo } from "../components/ui/Logo";
 import { LogOut, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import request from "../lib/request";
-import { Exercise, normalizeChartData } from "../types";
+import {
+  Exercise,
+  normalizeChartData,
+  DIFFICULTY_LABEL,
+  DIFFICULTY_COLOR,
+  CHART_TYPE_LABEL,
+} from "../types";
 import { D3Chart } from "../components/ui/D3Chart";
 
 function getUser() {
@@ -13,16 +19,6 @@ function getUser() {
   } catch {
     return null;
   }
-}
-
-function getOptions(ex: Exercise): [number, string][] {
-  const opts: [number, string][] = [];
-  if (ex.option1) opts.push([1, ex.option1]);
-  if (ex.option2) opts.push([2, ex.option2]);
-  if (ex.option3) opts.push([3, ex.option3]);
-  if (ex.option4) opts.push([4, ex.option4]);
-  if (ex.option5) opts.push([5, ex.option5]);
-  return opts;
 }
 
 export function ExerciseViewPage() {
@@ -46,6 +42,7 @@ export function ExerciseViewPage() {
   };
 
   const chartData = exercise ? normalizeChartData(exercise.chartDataJson) : null;
+  const diffColor = exercise ? DIFFICULTY_COLOR[exercise.difficulty] : null;
 
   return (
     <div
@@ -57,7 +54,6 @@ export function ExerciseViewPage() {
         padding: "24px",
       }}
     >
-      {/* Navbar */}
       <div
         className="card rounded-4 px-4 py-3 d-flex flex-row align-items-center justify-content-between mb-4"
         style={{ backgroundColor: "#fff" }}
@@ -95,15 +91,12 @@ export function ExerciseViewPage() {
             padding: "6px 10px",
             borderRadius: "8px",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f4f3f0")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         >
           <LogOut size={15} />
           Salir de la aplicación
         </button>
       </div>
 
-      {/* Content */}
       {loading ? (
         <div className="text-center py-5">
           <span className="spinner-border" style={{ color: "#737373" }} />
@@ -118,9 +111,8 @@ export function ExerciseViewPage() {
       ) : (
         <div
           className="card rounded-4 px-4 pt-4 pb-4"
-          style={{ backgroundColor: "#fff", maxWidth: 740 }}
+          style={{ backgroundColor: "#fff", maxWidth: 820 }}
         >
-          {/* Header with back */}
           <div className="d-flex align-items-center gap-3 mb-4">
             <button
               onClick={() => navigate("/dashboard")}
@@ -156,7 +148,51 @@ export function ExerciseViewPage() {
             </div>
           </div>
 
-          {/* Title */}
+          <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            {diffColor && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  backgroundColor: diffColor.bg,
+                  color: diffColor.fg,
+                }}
+              >
+                {DIFFICULTY_LABEL[exercise.difficulty]}
+              </span>
+            )}
+            {exercise.chartType && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  backgroundColor: "#f4f3f0",
+                  color: "#737373",
+                }}
+              >
+                {CHART_TYPE_LABEL[exercise.chartType]}
+              </span>
+            )}
+            {exercise.questionType === "MULTIPLE_CHOICE" && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  backgroundColor: "#ede9fe",
+                  color: "#6d28d9",
+                }}
+              >
+                Múltiples respuestas
+              </span>
+            )}
+          </div>
+
           <h5
             style={{
               fontFamily: '"Space Grotesk", sans-serif',
@@ -167,43 +203,49 @@ export function ExerciseViewPage() {
           >
             {exercise.title}
           </h5>
-
-          {/* Instructions */}
           <p style={{ color: "#737373", fontSize: 14, marginBottom: 24 }}>
             {exercise.instructions}
           </p>
 
-          {/* Options + Chart */}
           <div className="d-flex gap-4 mb-4 flex-wrap">
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#a3a3a3", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-                Opciones de respuesta
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#a3a3a3",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  marginBottom: 10,
+                }}
+              >
+                Opciones
               </p>
-              {getOptions(exercise).map(([n, text]) => (
+              {exercise.options.map((opt) => (
                 <div
-                  key={n}
+                  key={opt.optionId ?? opt.optionOrder}
                   className="d-flex align-items-center gap-2 mb-2"
                   style={{
                     padding: "8px 12px",
                     borderRadius: 8,
-                    backgroundColor: n === exercise.correctAnswer ? "#f0fdf4" : "#fafafa",
-                    border: `1px solid ${n === exercise.correctAnswer ? "#bbf7d0" : "#e8e8e8"}`,
+                    backgroundColor: opt.correct ? "#f0fdf4" : "#fafafa",
+                    border: `1px solid ${opt.correct ? "#bbf7d0" : "#e8e8e8"}`,
                   }}
                 >
                   <span
                     style={{
                       width: 20,
                       height: 20,
-                      borderRadius: "50%",
-                      border: `2px solid ${n === exercise.correctAnswer ? "#16803c" : "#d4d4d4"}`,
-                      backgroundColor: n === exercise.correctAnswer ? "#16803c" : "transparent",
+                      borderRadius: exercise.questionType === "SINGLE_CHOICE" ? "50%" : 4,
+                      border: `2px solid ${opt.correct ? "#16803c" : "#d4d4d4"}`,
+                      backgroundColor: opt.correct ? "#16803c" : "transparent",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    {n === exercise.correctAnswer && (
+                    {opt.correct && (
                       <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
                         ✓
                       </span>
@@ -212,53 +254,107 @@ export function ExerciseViewPage() {
                   <span
                     style={{
                       fontSize: 14,
-                      color: n === exercise.correctAnswer ? "#16803c" : "#737373",
-                      fontWeight: n === exercise.correctAnswer ? 600 : 400,
+                      color: opt.correct ? "#16803c" : "#737373",
+                      fontWeight: opt.correct ? 600 : 400,
                     }}
                   >
-                    {text}
+                    {opt.text}
                   </span>
                 </div>
               ))}
             </div>
 
-            {chartData && (
+            {exercise.chartType && chartData && (
               <div>
-                <p style={{ fontSize: 12, fontWeight: 600, color: "#a3a3a3", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+                <p
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#a3a3a3",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    marginBottom: 10,
+                  }}
+                >
                   Gráfica
                 </p>
-                <D3Chart data={chartData} width={340} height={250} />
+                <D3Chart
+                  type={exercise.chartType}
+                  data={chartData}
+                  title={exercise.chartTitle}
+                  xLabel={exercise.xAxisLabel}
+                  yLabel={exercise.yAxisLabel}
+                  primaryColor={exercise.primaryColor}
+                  secondaryColor={exercise.secondaryColor}
+                  width={360}
+                  height={280}
+                />
               </div>
             )}
           </div>
 
-          {/* Multimedia */}
+          {exercise.explanation && (
+            <div
+              className="mb-4"
+              style={{
+                padding: "12px 16px",
+                borderRadius: 8,
+                backgroundColor: "#eff6ff",
+                border: "1px solid #bfdbfe",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#1e40af",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  marginBottom: 4,
+                }}
+              >
+                Explicación
+              </p>
+              <p style={{ fontSize: 13, color: "#1e3a8a", marginBottom: 0 }}>
+                {exercise.explanation}
+              </p>
+            </div>
+          )}
+
           {exercise.mediaType && exercise.mediaPath && (
             <div className="mb-4">
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#a3a3a3", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#a3a3a3",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  marginBottom: 10,
+                }}
+              >
                 Multimedia
               </p>
-              {exercise.mediaType === "img" && (
+              {exercise.mediaType === "IMAGE" && (
                 <img
                   src={exercise.mediaPath}
                   alt="Media del ejercicio"
                   style={{ maxWidth: "100%", borderRadius: 8, maxHeight: 280 }}
                 />
               )}
-              {exercise.mediaType === "video" && (
+              {exercise.mediaType === "VIDEO" && (
                 <video
                   src={exercise.mediaPath}
                   controls
                   style={{ maxWidth: "100%", borderRadius: 8, maxHeight: 280 }}
                 />
               )}
-              {exercise.mediaType === "audio" && (
+              {exercise.mediaType === "AUDIO" && (
                 <audio src={exercise.mediaPath} controls style={{ width: "100%" }} />
               )}
             </div>
           )}
 
-          {/* Actions */}
           <div className="d-flex gap-2">
             <button
               className="btn btn-dark btn-sm px-3"
