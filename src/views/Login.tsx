@@ -21,9 +21,15 @@ interface State {
   };
 }
 
+/*
+ * LoginPage es el punto de entrada de la ruta "/".
+ * Usa un hook funcional solo para acceder a useNavigate, que no está disponible
+ * en componentes de clase, y delega el render al componente de clase Login.
+ */
 export function LoginPage() {
   const navigate = useNavigate();
   const handleSuccess = (user: any) => {
+    // Guarda el usuario en sessionStorage para mantener la sesión mientras el tab está abierto
     sessionStorage.setItem("user", JSON.stringify(user));
     navigate("/dashboard");
   };
@@ -40,6 +46,7 @@ class Login extends React.Component<Props, State> {
     };
   }
 
+  // Actualiza el campo correspondiente del formulario de forma dinámica por el atributo "name"
   handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     this.setState((prevState) => ({
@@ -54,12 +61,15 @@ class Login extends React.Component<Props, State> {
     try {
       e.preventDefault();
       this.setState({ loading: true });
+      // Llama al endpoint POST /api/auth/login con las credenciales del formulario
       const user = await request.post("/api/auth/login", {
         username: this.state.form.user,
         password: this.state.form.password,
       });
       this.props.onSuccess(user);
     } catch (error: any) {
+      // Muestra el mensaje de error del backend si está disponible (ApiError),
+      // o un mensaje genérico si es un error de red u otro tipo
       if (error instanceof ApiError) {
         toast.error(error.message);
       } else {

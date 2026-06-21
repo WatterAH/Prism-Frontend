@@ -15,6 +15,7 @@ function getUser() {
   }
 }
 
+// Convierte segundos totales al formato HH:MM:SS para mostrar en el cronómetro
 function formatTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
@@ -27,9 +28,11 @@ export function ExerciseTryPage() {
   const { id } = useParams<{ id: string }>();
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [loading, setLoading] = useState(true);
+  // IDs de las opciones que el alumno tiene actualmente seleccionadas
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [result, setResult] = useState<"correct" | "incorrect" | null>(null);
   const [seconds, setSeconds] = useState(0);
+  // Referencia al intervalo del cronómetro para poder limpiarlo al evaluar o reiniciar
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const user = getUser();
 
@@ -38,6 +41,7 @@ export function ExerciseTryPage() {
       .get<Exercise>(`/api/exercises/${id}`)
       .then((ex) => {
         setExercise(ex);
+        // Inicia el cronómetro en cuanto el ejercicio carga
         intervalRef.current = setInterval(() => {
           setSeconds((s) => s + 1);
         }, 1000);
@@ -45,6 +49,7 @@ export function ExerciseTryPage() {
       .catch(() => toast.error("Error al cargar el ejercicio"))
       .finally(() => setLoading(false));
 
+    // Limpia el intervalo si el componente se desmonta
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -55,8 +60,10 @@ export function ExerciseTryPage() {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (exercise.questionType === "SINGLE_CHOICE") {
+        // Opción única: reemplaza cualquier selección anterior
         return new Set([optionId]);
       }
+      // Opción múltiple: alterna la selección de la opción
       if (next.has(optionId)) next.delete(optionId);
       else next.add(optionId);
       return next;
@@ -67,6 +74,7 @@ export function ExerciseTryPage() {
     if (!exercise || selectedIds.size === 0) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
 
+    // Compara el conjunto de IDs correctos con el conjunto seleccionado por el alumno
     const correctIds = new Set(
       exercise.options.filter((o) => o.correct).map((o) => o.optionId!),
     );
@@ -79,6 +87,7 @@ export function ExerciseTryPage() {
     setSelectedIds(new Set());
     setResult(null);
     setSeconds(0);
+    // Reinicia el cronómetro desde cero
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setSeconds((s) => s + 1);

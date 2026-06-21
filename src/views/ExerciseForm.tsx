@@ -26,6 +26,7 @@ function getUser() {
   }
 }
 
+// Plantilla de ejercicio vacío con los valores por defecto que muestra el formulario al crear
 function emptyExercise(): Exercise {
   return {
     title: "",
@@ -49,6 +50,10 @@ function emptyExercise(): Exercise {
   };
 }
 
+/*
+ * Vista dual: funciona tanto para CREAR (/exercises/new) como para EDITAR (/exercises/:id/edit).
+ * La diferencia se detecta por la presencia del parámetro :id en la URL (isEdit).
+ */
 export function ExerciseFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
@@ -61,6 +66,8 @@ export function ExerciseFormPage() {
 
   useEffect(() => {
     if (!isEdit) return;
+    // En modo edición carga el ejercicio existente y mezcla con el template vacío
+    // para garantizar que todos los campos tengan un valor por defecto
     request
       .get<Exercise>(`/api/exercises/${id}`)
       .then((data) => {
@@ -76,6 +83,7 @@ export function ExerciseFormPage() {
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
+  // Helper tipado para actualizar un campo del ejercicio sin mutar el estado
   const set = <K extends keyof Exercise>(key: K, value: Exercise[K]) =>
     setEx((p) => ({ ...p, [key]: value }));
 
@@ -85,6 +93,7 @@ export function ExerciseFormPage() {
       options: p.options.map((o, i) => (i === index ? { ...o, ...patch } : o)),
     }));
 
+  // Límite máximo de 10 opciones por ejercicio
   const addOption = () =>
     setEx((p) =>
       p.options.length >= 10
@@ -98,6 +107,7 @@ export function ExerciseFormPage() {
           },
     );
 
+  // Mínimo 2 opciones; no permite eliminar por debajo de ese umbral
   const removeOption = (index: number) =>
     setEx((p) => {
       if (p.options.length <= 2) return p;
@@ -107,11 +117,13 @@ export function ExerciseFormPage() {
   const toggleCorrect = (index: number) => {
     setEx((p) => {
       if (p.questionType === "SINGLE_CHOICE") {
+        // SINGLE_CHOICE: marcar una opción desmarca automáticamente las demás
         return {
           ...p,
           options: p.options.map((o, i) => ({ ...o, correct: i === index })),
         };
       }
+      // MULTIPLE_CHOICE: alterna la selección de forma independiente
       return {
         ...p,
         options: p.options.map((o, i) =>
@@ -124,6 +136,7 @@ export function ExerciseFormPage() {
   const handleQuestionTypeChange = (qt: QuestionType) => {
     setEx((p) => {
       if (qt === "SINGLE_CHOICE") {
+        // Al cambiar a SINGLE_CHOICE, mantiene solo la primera opción correcta
         const firstCorrect = p.options.findIndex((o) => o.correct);
         return {
           ...p,
@@ -140,6 +153,7 @@ export function ExerciseFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validación en frontend (el backend también valida, esto da feedback inmediato)
     if (!ex.options.some((o) => o.correct)) {
       toast.error("Debe haber al menos una opción correcta");
       return;
@@ -154,8 +168,10 @@ export function ExerciseFormPage() {
     }
     const payload: Exercise = {
       ...ex,
+      // Si no hay mediaType seleccionado, limpia la ruta para no enviar datos huérfanos
       mediaPath: ex.mediaType ? ex.mediaPath : null,
       chartType: ex.chartType,
+      // Si no hay chartType, no envía datos de gráfica al backend
       chartDataJson: ex.chartType ? ex.chartDataJson : null,
       options: ex.options.map((o, i) => ({ ...o, optionOrder: i + 1 })),
     };

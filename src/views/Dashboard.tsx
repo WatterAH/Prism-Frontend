@@ -44,6 +44,7 @@ class Dashboard extends React.Component<Props, State> {
     };
   }
 
+  // Lee el usuario almacenado en sessionStorage al iniciar sesión
   get user(): User | null {
     try {
       return JSON.parse(sessionStorage.getItem("user") || "null");
@@ -52,6 +53,7 @@ class Dashboard extends React.Component<Props, State> {
     }
   }
 
+  // Carga los ejercicios en cuanto el componente aparece en pantalla
   componentDidMount() {
     this.fetchExercises();
   }
@@ -69,6 +71,7 @@ class Dashboard extends React.Component<Props, State> {
   };
 
   handleLogout = () => {
+    // Elimina la sesión local y redirige al login
     sessionStorage.removeItem("user");
     this.props.navigate("/");
   };
@@ -78,6 +81,7 @@ class Dashboard extends React.Component<Props, State> {
     if (!deleteId) return;
     try {
       this.setState({ deleting: true });
+      // DELETE en cascada: el backend elimina también las exercise_options asociadas
       await request.delete(`/api/exercises/${deleteId}`);
       toast.success("Ejercicio eliminado");
       this.setState({ deleteId: null, deleting: false });
